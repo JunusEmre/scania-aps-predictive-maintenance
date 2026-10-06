@@ -1,0 +1,48 @@
+﻿# Python
+__pycache__/
+*.py[cod]
+*.pyd
+*.pyo
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Raw and processed datasets
+# Keep only README/.gitkeep files in Git
+data/raw/*
+!data/raw/.gitkeep
+
+data/processed/*
+!data/processed/.gitkeep
+
+# Model artifacts
+*.pkl
+*.pickle
+*.joblib
+
+# Environment files / secrets
+.env
+.env.*
+!.env.example
+
+# Test/cache
+.pytest_cache/
+.coverage
+
+# Generated outputs
+reports/figures/*
+!reports/figures/.gitkeep
+
+reports/results/*
+!reports/results/.gitkeep
