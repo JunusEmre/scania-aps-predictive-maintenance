@@ -2,6 +2,17 @@ import pandas as pd
 
 from src.data.load_data import TARGET_COLUMN
 
+BINARY_TARGET_MAP = {"neg": 0, "pos": 1}
+
+
+def encode_binary_target(y: pd.Series) -> pd.Series:
+    """Map ``neg`` -> 0 and ``pos`` -> 1 without changing the source dataframe."""
+    encoded = y.map(BINARY_TARGET_MAP)
+    if encoded.isna().any():
+        unknown = sorted(y[encoded.isna()].unique())
+        raise ValueError(f"Unexpected target labels: {unknown}")
+    return encoded.astype(int)
+
 
 def split_features_target(
     df: pd.DataFrame,
