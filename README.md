@@ -1,6 +1,6 @@
 # Scania APS Predictive Maintenance
 
-Cost-sensitive predictive maintenance using the Scania APS Failure dataset (UCI). This repository supports a group Data Science project at an early stage: data loading, data-quality review, documentation, and automated tests. **Modelling and final evaluation are not implemented yet.**
+Cost-sensitive predictive maintenance using the Scania APS Failure dataset (UCI). This repository supports a group Data Science project: data loading, data-quality review, an internal-validation Logistic Regression baseline, documentation, and automated tests. **Random Forest comparison and official test-set evaluation are not implemented yet.**
 
 ## Project overview
 
@@ -61,25 +61,33 @@ The following were computed from the **official training data** using `notebooks
 | Zero-heavy features (≥ 95% of non-missing values are 0) | 30 features |
 | Completely duplicated rows | 0 |
 
-No final preprocessing (imputation, dropping columns, etc.) has been applied yet.
+No preprocessing was applied during the initial data-quality review. For the Logistic Regression baseline, preprocessing is performed inside the model pipeline using training data only.
 
-## Evaluation direction (planned)
+## Evaluation direction
 
-**Not started in code yet**—this section describes the group’s intended direction from `docs/decisions.md`.
-
-Planned models:
-
-- **Logistic Regression** — simple, interpretable baseline  
-- **Random Forest** — non-linear comparison model  
-
-Primary business-oriented metric: **Scania cost structure**
+Primary business-oriented metric: **Scania cost structure** (`src/evaluation/metrics.py`)
 
 - false positive cost = 10  
 - false negative cost = 500  
 
-Supporting metrics may include precision, recall, F1-score, and the confusion matrix.
+Supporting metrics include precision, recall, F1-score, PR-AUC (where applicable), and the confusion matrix.
 
 Because roughly **98%** of training rows are `neg`, **ordinary accuracy is misleading** (a model that always predicts “no failure” can look accurate while missing failures). Cost-based and recall-oriented measures are more appropriate for this problem.
+
+**Logistic Regression baseline** — implemented in `src/models/baseline.py` and `notebooks/02_eda_baseline.ipynb` (internal 80/20 validation on training data only).
+
+**Random Forest** — planned (`notebooks/03_random_forest.ipynb`); not implemented yet.
+
+### Internal validation results — not official test results
+
+From a stratified **80% development / 20% validation** split of the official **training** data (`random_state=42`), on the held-out validation fold:
+
+| Model | Accuracy | Precision | Recall | F1 | FP | FN | Business cost |
+|-------|---------:|----------:|-------:|---:|---:|---:|--------------:|
+| Dummy (most frequent) | 0.983 | 0.000 | 0.000 | 0.000 | 0 | 200 | 100,000 |
+| Logistic Regression | 0.968 | 0.336 | 0.920 | 0.492 | 364 | 16 | 11,640 |
+
+Logistic Regression PR-AUC (validation): **0.721**. These numbers are for workflow comparison only; the official test set was not used.
 
 ## Test-set boundary
 
@@ -111,7 +119,7 @@ scania-aps-predictive-maintenance/
 │
 ├── notebooks/
 │   ├── 01_data_quality.ipynb      (initial data-quality review)
-│   ├── 02_eda_baseline.ipynb      (placeholder for later EDA / baseline)
+│   ├── 02_eda_baseline.ipynb      (EDA + Logistic Regression baseline)
 │   ├── 03_random_forest.ipynb     (placeholder)
 │   └── 04_model_evaluation.ipynb  (placeholder)
 │
@@ -121,14 +129,16 @@ scania-aps-predictive-maintenance/
 │   │   ├── load_data.py
 │   │   └── preprocess.py
 │   ├── models/
-│   │   ├── baseline.py            (placeholder)
+│   │   ├── baseline.py
 │   │   └── random_forest.py       (placeholder)
 │   └── evaluation/
-│       └── metrics.py             (placeholder)
+│       └── metrics.py
 │
 ├── tests/
 │   ├── test_data_loading.py
-│   └── test_preprocess.py
+│   ├── test_preprocess.py
+│   ├── test_metrics.py
+│   └── test_baseline.py
 │
 ├── reports/
 │   ├── figures/
@@ -147,8 +157,8 @@ scania-aps-predictive-maintenance/
 | `data/` | Local project data and instructions; raw files stay on disk only |
 | `notebooks/` | Analysis and (later) modelling notebooks |
 | `src/data/` | Reusable data loading and data-quality helper code |
-| `src/models/` | Model code (planned; files present but not implemented) |
-| `src/evaluation/` | Evaluation logic (planned; not implemented) |
+| `src/models/` | Model code (`baseline.py` implemented; Random Forest placeholder) |
+| `src/evaluation/` | Shared evaluation logic (Scania business cost, validation metrics) |
 | `tests/` | Automated tests |
 | `reports/` | Final figures and result exports |
 | `docs/` | Decisions, data-quality write-up, AI usage notes |
@@ -193,24 +203,24 @@ Current behaviour:
 - [x] Dependencies listed in `requirements.txt`  
 - [x] APS CSV loader (`src/data/load_data.py`)  
 - [x] Data-quality helpers (`src/data/preprocess.py`)  
-- [x] Automated tests (`tests/test_data_loading.py`, `tests/test_preprocess.py`)  
+- [x] Automated tests (loading, preprocess, metrics, baseline)  
 - [x] Initial data-quality notebook and `docs/data_quality.md`  
+- [x] EDA + Dummy reference + Logistic Regression baseline (`02_eda_baseline.ipynb`, `src/models/baseline.py`, `src/evaluation/metrics.py`)  
 
 **In progress**
 
-- [ ] Preprocessing strategy (group review; no irreversible steps committed in code)  
+- [ ] Preprocessing experiments (e.g. dropping high-missing features) — group discussion  
 
 **Planned**
 
-- [ ] Exploratory analysis and Logistic Regression baseline (`02_eda_baseline.ipynb`, `src/models/baseline.py`)  
 - [ ] Random Forest (`03_random_forest.ipynb`, `src/models/random_forest.py`)  
-- [ ] Model comparison and Scania cost evaluation (`04_model_evaluation.ipynb`, `src/evaluation/metrics.py`)  
+- [ ] Model comparison and **official** test-set evaluation (`04_model_evaluation.ipynb`)  
 - [ ] Error analysis and final demonstration (`presentation/`)  
 
 ## Known limitations
 
 - Strong **class imbalance** makes naive accuracy a poor success measure.  
-- Widespread **missing values** require an agreed imputation or modelling strategy.  
+- Missing values are currently handled with median imputation and missing-value indicators in the Logistic Regression baseline. The final preprocessing strategy may change after model comparison.  
 - **Anonymised** feature names limit physical interpretation; findings are statistical, not causal.  
 - The project does **not** establish the physical root cause of an APS failure from data alone.  
 - Outputs are **decision support**, not autonomous maintenance actions.  
