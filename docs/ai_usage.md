@@ -1,18 +1,13 @@
 ﻿# Use of generative AI
 
-The group used generative AI (including Cursor) as **support**, not as an automatic author of the final project.
+The group used generative AI, as a support tool during the project.
 
-Typical uses during the project:
+It was mainly used for:
 
-- discussing repository structure, scope, and task breakdown
-- drafting and reviewing Python modules, tests, and notebooks
-- debugging errors (for example pytest collection and import issues)
-- suggesting unit tests and evaluation helpers
-- discussing preprocessing and class-imbalance choices
-- reviewing Scania cost-based evaluation logic
-- README and documentation wording
-- final repository QA, refactoring (for example shared Random Forest builder), and reproducibility checks
+- explaining errors and technical concepts
+- suggesting code improvements and tests
+- discussing preprocessing and evaluation choices
+- support with documentation and README wording
+- final code and repository review
 
-**Group responsibility:** every suggestion was reviewed in the group context, run locally, and checked against tests or notebook outputs where relevant. Model settings, thresholds, and reported results remained the group's responsibility; AI did not replace execution or validation on the actual data.
-
-Important tool-assisted edits are noted in git history and in this file.
+All suggestions were reviewed and tested by the group. The models were run on the actual data by the group, and model choices, thresholds, evaluation and final conclusions were based on our own project results.
