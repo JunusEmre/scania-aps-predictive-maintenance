@@ -159,6 +159,7 @@ scania-aps-predictive-maintenance/
 │   └── ai_usage.md
 │
 └── presentation/
+    └── Scania APS Gruppresentation.pptx
 ```
 
 | Folder | Purpose |
@@ -171,7 +172,7 @@ scania-aps-predictive-maintenance/
 | `tests/` | Automated tests |
 | `reports/` | Final figures and result exports |
 | `docs/` | Decisions, data-quality write-up, AI usage notes |
-| `presentation/` | Presentation material |
+| `presentation/` | Group presentation material (includes final deck `Scania APS Gruppresentation.pptx`) |
 
 ## Setup (Windows)
 
@@ -217,10 +218,10 @@ Current behaviour:
 - [x] Random Forest + calibration (`03_random_forest.ipynb`, `src/models/random_forest.py`)
 - [x] Cost-based comparison and **official test evaluation** (`04_model_evaluation.ipynb`)
 - [x] Decision and AI-usage documentation (`docs/decisions.md`, `docs/ai_usage.md`)
+- [x] Final group presentation (`presentation/Scania APS Gruppresentation.pptx`)
 
 **Not in this repository**
 
-- [ ] Final slide deck (`presentation/` contains only `.gitkeep`)
 - [ ] Exported figures in `reports/` (folders reserved; optional exports not committed)
 
 ## Known limitations
