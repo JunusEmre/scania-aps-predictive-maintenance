@@ -149,10 +149,6 @@ scania-aps-predictive-maintenance/
 │   ├── test_baseline.py
 │   └── test_random_forest.py
 │
-├── reports/
-│   ├── figures/
-│   └── results/
-│
 ├── docs/
 │   ├── data_quality.md
 │   ├── decisions.md
@@ -170,7 +166,6 @@ scania-aps-predictive-maintenance/
 | `src/models/` | Model code (`baseline.py`, `random_forest.py`) |
 | `src/evaluation/` | Shared evaluation logic (Scania business cost, validation metrics) |
 | `tests/` | Automated tests |
-| `reports/` | Final figures and result exports |
 | `docs/` | Decisions, data-quality write-up, AI usage notes |
 | `presentation/` | Group presentation material (includes final deck `Scania APS Gruppresentation.pptx`) |
 
@@ -219,10 +214,6 @@ Current behaviour:
 - [x] Cost-based comparison and **official test evaluation** (`04_model_evaluation.ipynb`)
 - [x] Decision and AI-usage documentation (`docs/decisions.md`, `docs/ai_usage.md`)
 - [x] Final group presentation (`presentation/Scania APS Gruppresentation.pptx`)
-
-**Not in this repository**
-
-- [ ] Exported figures in `reports/` (folders reserved; optional exports not committed)
 
 ## Known limitations
 
