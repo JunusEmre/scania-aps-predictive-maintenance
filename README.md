@@ -1,6 +1,6 @@
 # Scania APS Predictive Maintenance
 
-Cost-sensitive predictive maintenance using the Scania APS Failure dataset (UCI). This repository supports a group Data Science project: data loading, data-quality review, an internal-validation Logistic Regression baseline, documentation, and automated tests. **Random Forest comparison and official test-set evaluation are not implemented yet.**
+Cost-sensitive predictive maintenance using the Scania APS Failure dataset (UCI). This repository documents a completed group Data Science project: data pipeline, data-quality review, Logistic Regression and Random Forest baselines, cost-based comparison, and **one official test-set evaluation** with frozen model settings.
 
 ## Project overview
 
@@ -48,6 +48,8 @@ Expected files:
 
 See also `data/README.md`.
 
+The Scania/UCI dataset is **not redistributed** in this repository; download it locally and comply with the [UCI / source terms](https://archive.ics.uci.edu/dataset/421/aps+failure+at+scania+trucks). This project repository does not include a separate `LICENSE` file for the codebase — confirm licensing with the course/group if required.
+
 ## Initial data-quality findings (training set only)
 
 The following were computed from the **official training data** using `notebooks/01_data_quality.ipynb` and helpers in `src/data/preprocess.py`. Full detail is in `docs/data_quality.md`.
@@ -74,34 +76,40 @@ Supporting metrics include precision, recall, F1-score, PR-AUC (where applicable
 
 Because roughly **98%** of training rows are `neg`, **ordinary accuracy is misleading** (a model that always predicts “no failure” can look accurate while missing failures). Cost-based and recall-oriented measures are more appropriate for this problem.
 
-**Logistic Regression baseline** — implemented in `src/models/baseline.py` and `notebooks/02_eda_baseline.ipynb` (internal 80/20 validation on training data only).
+**Logistic Regression** — `src/models/baseline.py`, `notebooks/02_eda_baseline.ipynb` (internal validation).
 
-**Random Forest** — planned (`notebooks/03_random_forest.ipynb`); not implemented yet.
+**Random Forest** — `src/models/random_forest.py`, `notebooks/03_random_forest.ipynb` (calibration on training data; settings then frozen).
+
+**Official test evaluation** — `notebooks/04_model_evaluation.ipynb` (frozen thresholds and hyperparameters; no further tuning).
 
 ### Internal validation results — not official test results
 
-From a stratified **80% development / 20% validation** split of the official **training** data (`random_state=42`), on the held-out validation fold:
+Stratified **80% development / 20% validation** on official **training** data only (`random_state=42`; see `02_eda_baseline.ipynb`):
 
 | Model | Accuracy | Precision | Recall | F1 | FP | FN | Business cost |
 |-------|---------:|----------:|-------:|---:|---:|---:|--------------:|
 | Dummy (most frequent) | 0.983 | 0.000 | 0.000 | 0.000 | 0 | 200 | 100,000 |
 | Logistic Regression | 0.968 | 0.336 | 0.920 | 0.492 | 364 | 16 | 11,640 |
 
-Logistic Regression PR-AUC (validation): **0.721**. These numbers are for workflow comparison only; the official test set was not used.
+Logistic Regression PR-AUC (internal validation): **~0.72**.
+
+### FINAL RESULTS — OFFICIAL TEST SET
+
+Single final evaluation on **16,000** official test rows (**375** `pos`), with thresholds **LR = 0.460**, **RF = 0.105** (from notebook `03`, frozen in notebook `04`). Cost: **10 × FP + 500 × FN**.
+
+| Model | Accuracy | Precision | Recall | F1 | FP | FN | Business cost | PR-AUC |
+|-------|---------:|----------:|-------:|---:|---:|---:|--------------:|-------:|
+| Dummy baseline | 0.977 | 0.000 | 0.000 | 0.000 | 0 | 375 | 187,500 | 0.023 |
+| Logistic Regression | 0.971 | 0.441 | 0.944 | 0.601 | 449 | 21 | 14,990 | 0.802 |
+| Random Forest | 0.978 | 0.518 | 0.960 | 0.673 | 335 | 15 | **10,850** | 0.899 |
+
+**Accuracy alone is misleading** (Dummy ≈ 97.7% while missing every failure). **Random Forest** has the lowest business cost among compared models (~**27.6%** lower than Logistic Regression on the test set), but still misses **15** failures and triggers **335** false alarms — **decision support**, not autonomous maintenance.
 
 ## Test-set boundary
 
-The **official test set is reserved for final evaluation only.**
+During development, the **official test set was not used** for preprocessing, feature selection, model choice, hyperparameters, or thresholds. Those decisions were made on **training data only** (internal validation and calibration in notebooks `02` and `03`).
 
-It must **not** be used for:
-
-- preprocessing decisions  
-- feature selection  
-- model selection  
-- hyperparameter tuning  
-- classification-threshold selection  
-
-Those choices should be made using **training data only** (e.g. cross-validation on the training set).
+After settings were frozen, the official test set was used **once** for final evaluation in `04_model_evaluation.ipynb`. It must **not** be reused for further tuning or model selection.
 
 ## Repository structure
 
@@ -120,8 +128,8 @@ scania-aps-predictive-maintenance/
 ├── notebooks/
 │   ├── 01_data_quality.ipynb      (initial data-quality review)
 │   ├── 02_eda_baseline.ipynb      (EDA + Logistic Regression baseline)
-│   ├── 03_random_forest.ipynb     (placeholder)
-│   └── 04_model_evaluation.ipynb  (placeholder)
+│   ├── 03_random_forest.ipynb     (Random Forest + calibration)
+│   └── 04_model_evaluation.ipynb  (official test evaluation)
 │
 ├── src/
 │   ├── __init__.py
@@ -130,7 +138,7 @@ scania-aps-predictive-maintenance/
 │   │   └── preprocess.py
 │   ├── models/
 │   │   ├── baseline.py
-│   │   └── random_forest.py       (placeholder)
+│   │   └── random_forest.py
 │   └── evaluation/
 │       └── metrics.py
 │
@@ -138,7 +146,8 @@ scania-aps-predictive-maintenance/
 │   ├── test_data_loading.py
 │   ├── test_preprocess.py
 │   ├── test_metrics.py
-│   └── test_baseline.py
+│   ├── test_baseline.py
+│   └── test_random_forest.py
 │
 ├── reports/
 │   ├── figures/
@@ -157,7 +166,7 @@ scania-aps-predictive-maintenance/
 | `data/` | Local project data and instructions; raw files stay on disk only |
 | `notebooks/` | Analysis and (later) modelling notebooks |
 | `src/data/` | Reusable data loading and data-quality helper code |
-| `src/models/` | Model code (`baseline.py` implemented; Random Forest placeholder) |
+| `src/models/` | Model code (`baseline.py`, `random_forest.py`) |
 | `src/evaluation/` | Shared evaluation logic (Scania business cost, validation metrics) |
 | `tests/` | Automated tests |
 | `reports/` | Final figures and result exports |
@@ -199,28 +208,25 @@ Current behaviour:
 
 **Completed**
 
-- [x] Repository and folder structure  
-- [x] Dependencies listed in `requirements.txt`  
-- [x] APS CSV loader (`src/data/load_data.py`)  
-- [x] Data-quality helpers (`src/data/preprocess.py`)  
-- [x] Automated tests (loading, preprocess, metrics, baseline)  
-- [x] Initial data-quality notebook and `docs/data_quality.md`  
-- [x] EDA + Dummy reference + Logistic Regression baseline (`02_eda_baseline.ipynb`, `src/models/baseline.py`, `src/evaluation/metrics.py`)  
+- [x] Repository and folder structure
+- [x] Dependencies (`requirements.txt`)
+- [x] APS data loader and data-quality helpers
+- [x] Automated tests (loading, preprocess, metrics, baseline, Random Forest)
+- [x] Data-quality notebook and `docs/data_quality.md`
+- [x] EDA + Dummy reference + Logistic Regression (`02_eda_baseline.ipynb`)
+- [x] Random Forest + calibration (`03_random_forest.ipynb`, `src/models/random_forest.py`)
+- [x] Cost-based comparison and **official test evaluation** (`04_model_evaluation.ipynb`)
+- [x] Decision and AI-usage documentation (`docs/decisions.md`, `docs/ai_usage.md`)
 
-**In progress**
+**Not in this repository**
 
-- [ ] Preprocessing experiments (e.g. dropping high-missing features) — group discussion  
-
-**Planned**
-
-- [ ] Random Forest (`03_random_forest.ipynb`, `src/models/random_forest.py`)  
-- [ ] Model comparison and **official** test-set evaluation (`04_model_evaluation.ipynb`)  
-- [ ] Error analysis and final demonstration (`presentation/`)  
+- [ ] Final slide deck (`presentation/` contains only `.gitkeep`)
+- [ ] Exported figures in `reports/` (folders reserved; optional exports not committed)
 
 ## Known limitations
 
 - Strong **class imbalance** makes naive accuracy a poor success measure.  
-- Missing values are currently handled with median imputation and missing-value indicators in the Logistic Regression baseline. The final preprocessing strategy may change after model comparison.  
+- Missing values are handled with median imputation and missing-value indicators inside the model pipelines (training-fit only within each workflow).
 - **Anonymised** feature names limit physical interpretation; findings are statistical, not causal.  
 - The project does **not** establish the physical root cause of an APS failure from data alone.  
 - Outputs are **decision support**, not autonomous maintenance actions.  
